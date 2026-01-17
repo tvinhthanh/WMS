@@ -812,9 +812,9 @@ namespace WMS1.Controllers
                         if (receivingToInventoryMap.ContainsKey(d.ReceivingDetailId))
                         {
                             var inventoryId = receivingToInventoryMap[d.ReceivingDetailId];
-                            if (inventoryId.HasValue && serialNumbersByInventory.ContainsKey(inventoryId.Value))
+                            if (serialNumbersByInventory.ContainsKey(inventoryId))
                             {
-                                serials = serialNumbersByInventory[inventoryId.Value];
+                                serials = serialNumbersByInventory[inventoryId];
                             }
                         }
 
