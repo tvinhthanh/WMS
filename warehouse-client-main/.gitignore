@@ -1,0 +1,39 @@
+# -----------------------------
+# 🌐 FRONTEND - VITE / REACT
+# -----------------------------
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+out/
+build/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+debug.log
+
+# Editor
+.vscode/
+.idea/
+
+# Cache
+.cache/
+*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+.early.coverage

@@ -1,0 +1,67 @@
+# =========================================
+# .NET 6 BACKEND - CLEAN GITIGNORE
+# =========================================
+
+# Build directories
+bin/
+obj/
+
+# Rider / Visual Studio Code / Visual Studio metadata
+.vscode/
+.idea/
+.vs/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+logs/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Publish output
+/app.publish/
+/publish/
+/wwwroot/dist/
+/out/
+/build/
+
+# Temp
+*.tmp
+*.temp
+
+# Database local files
+*.mdf
+*.ldf
+*.db
+
+# EF Core auto files
+**/Migrations/*Snapshot.cs
+**/Migrations/*Designer.cs
+
+# Configuration secrets (don’t commit)
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json   # Only keep main one
+
+# Cache
+*.Cache
+*.cache
+*.dll.db
+*.db-wal
+*.db-shm
+
+# OS files
+.DS_Store
+Thumbs.db
