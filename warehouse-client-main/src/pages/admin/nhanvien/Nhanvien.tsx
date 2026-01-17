@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Search, Edit, Trash2, Eye, KeyRound } from "lucide-react";
 import { Clock } from "lucide-react";
 import LoginHistory from "./LoginHistory";
 import EmployeeModal from "./Nhanvienmodal";
@@ -9,6 +10,7 @@ import { UserDTO } from "../../../types";
 import { userService } from "../../../services/employee.service";
 
 const Nhanvien = () => {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState("name-asc");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,13 +113,22 @@ const Nhanvien = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Quản Lý Nhân Viên (Staff)</h1>
 
-                <button
-                    onClick={handleAdd}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    <Plus className="w-4 h-4" />
-                    Thêm nhân viên
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => navigate("/admin/password-reset-requests")}
+                        className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+                    >
+                        <KeyRound className="w-4 h-4" />
+                        Yêu cầu Reset Mật khẩu
+                    </button>
+                    <button
+                        onClick={handleAdd}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Thêm nhân viên
+                    </button>
+                </div>
             </div>
 
             {/* SEARCH BAR */}

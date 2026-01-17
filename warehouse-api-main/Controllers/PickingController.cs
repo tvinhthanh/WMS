@@ -48,6 +48,13 @@ namespace WMS1.Controllers
                 CreateByUserId = p.CreateByUserId,
                 CreateDate = p.CreateDate,
                 Status = p.Status,
+                // Lấy ngày xuất từ serial number đầu tiên (nếu có)
+                PickedDate = p.PickingDetails
+                    .SelectMany(d => d.PickingSerialDetails)
+                    .Where(psd => psd.PickedDate != null)
+                    .OrderBy(psd => psd.PickedDate)
+                    .Select(psd => psd.PickedDate)
+                    .FirstOrDefault(),
                 PartnerId = p.PartnerId,
                 PartnerName = p.Partner?.PartnerName ?? "",
                 CreateByUser = new UserInfo
@@ -70,7 +77,8 @@ namespace WMS1.Controllers
                     {
                         ProductSeriesId = psd.ProductSeriesId,
                         SerialNumber = psd.SerialNumber,
-                        Status = psd.Status
+                        Status = psd.Status,
+                        PickedDate = psd.PickedDate
                     }).ToList()
                 }).ToList()
             }).ToList();
@@ -111,6 +119,13 @@ namespace WMS1.Controllers
                 CreateByUserId = order.CreateByUserId,
                 CreateDate = order.CreateDate,
                 Status = order.Status,
+                // Lấy ngày xuất từ serial number đầu tiên (nếu có)
+                PickedDate = order.PickingDetails
+                    .SelectMany(d => d.PickingSerialDetails)
+                    .Where(psd => psd.PickedDate != null)
+                    .OrderBy(psd => psd.PickedDate)
+                    .Select(psd => psd.PickedDate)
+                    .FirstOrDefault(),
                 PartnerId = order.PartnerId,
                 PartnerName = order.Partner?.PartnerName ?? "",
                 CreateByUser = new UserInfo
@@ -133,7 +148,8 @@ namespace WMS1.Controllers
                     {
                         ProductSeriesId = psd.ProductSeriesId,
                         SerialNumber = psd.SerialNumber,
-                        Status = psd.Status
+                        Status = psd.Status,
+                        PickedDate = psd.PickedDate
                     }).ToList()
                 }).ToList()
             };
@@ -161,9 +177,8 @@ namespace WMS1.Controllers
 
                 // Generate order code - Chỉ lấy PickingOrderId để tránh lỗi NULL
                 int? lastOrderId = await _db.PickingOrders
-                    .Where(o => o.PartnerId != null && o.CreateByUserId != null)
                     .OrderByDescending(o => o.PickingOrderId)
-                    .Select(o => o.PickingOrderId)
+                    .Select(o => (int?)o.PickingOrderId)
                     .FirstOrDefaultAsync();
 
                 int nextNumber = (lastOrderId ?? 0) + 1;
@@ -345,38 +360,56 @@ namespace WMS1.Controllers
                     int balanceAfter = totalAvailable;
                     decimal totalPrice = 0; // Tổng giá trị hàng xuất
                     
-                    // ✅ TỰ ĐỘNG CHỌN SERIAL NUMBERS THEO FIFO KHI XUẤT PHIẾU
-                    // Lấy serial numbers InStock, chưa có PickedDate, chưa được gán cho picking detail nào, sắp xếp theo FIFO
-                    var serialNumbersToPick = await _db.ProductSeries
-                        .Where(ps => ps.ProductId == d.ProductId 
-                            && ps.Status == "InStock" 
-                            && ps.PickedDate == null
-                            && ps.PickingDetailId == null) // Chưa được gán cho picking detail nào
-                        .OrderBy(ps => ps.ReceivedDate ?? DateTime.MinValue) // FIFO: nhập trước xuất trước
-                        .ThenBy(ps => ps.ProductSeriesId)
-                        .Take(d.QuantityPicked)
-                        .ToListAsync();
+                    // ✅ CHỈ CẬP NHẬT SERIAL NUMBERS CHO SẢN PHẨM CÓ SERIAL NUMBER (theo FIFO)
+                    // Kiểm tra xem sản phẩm có sử dụng serial numbers không
+                    var totalSerialCount = await _db.ProductSeries
+                        .Where(ps => ps.ProductId == d.ProductId)
+                        .CountAsync();
                     
-                    _logger.LogInformation(
-                        "Found {Count} serial numbers available for ProductId {ProductId}, QuantityPicked: {QuantityPicked}",
-                        serialNumbersToPick.Count, d.ProductId, d.QuantityPicked);
+                    List<ProductSeries> serialNumbersToPick = new List<ProductSeries>();
                     
-                    if (serialNumbersToPick.Count < d.QuantityPicked)
+                    // Chỉ xử lý serial numbers nếu sản phẩm có serial numbers trong hệ thống
+                    if (totalSerialCount > 0)
                     {
-                        return BadRequest($"Không đủ serial numbers trong kho cho {d.Product?.ProductName}! Có {serialNumbersToPick.Count} serial numbers có sẵn, nhưng yêu cầu {d.QuantityPicked}.");
-                    }
-                    
-                    if (serialNumbersToPick.Any())
-                    {
+                        // Lấy serial numbers InStock, chưa có PickedDate, chưa được gán cho picking detail nào, sắp xếp theo FIFO
+                        serialNumbersToPick = await _db.ProductSeries
+                            .Where(ps => ps.ProductId == d.ProductId 
+                                && ps.Status == "InStock" 
+                                && ps.PickedDate == null
+                                && ps.PickingDetailId == null) // Chưa được gán cho picking detail nào
+                            .OrderBy(ps => ps.ReceivedDate ?? DateTime.MinValue) // FIFO: nhập trước xuất trước
+                            .ThenBy(ps => ps.ProductSeriesId)
+                            .Take(d.QuantityPicked)
+                            .ToListAsync();
+                        
                         _logger.LogInformation(
-                            "✅ Selected {Count} serial numbers by FIFO for picking",
-                            serialNumbersToPick.Count);
-                        foreach (var serial in serialNumbersToPick)
+                            "Found {Count} serial numbers available for ProductId {ProductId}, QuantityPicked: {QuantityPicked}",
+                            serialNumbersToPick.Count, d.ProductId, d.QuantityPicked);
+                        
+                        // Chỉ kiểm tra đủ serial numbers nếu sản phẩm có serial numbers
+                        if (serialNumbersToPick.Count < d.QuantityPicked)
+                        {
+                            return BadRequest($"Không đủ serial numbers trong kho cho {d.Product?.ProductName}! Có {serialNumbersToPick.Count} serial numbers có sẵn, nhưng yêu cầu {d.QuantityPicked}.");
+                        }
+                        
+                        if (serialNumbersToPick.Any())
                         {
                             _logger.LogInformation(
-                                "  - Serial: {SerialNumber} (ID: {ProductSeriesId}, ReceivedDate: {ReceivedDate})",
-                                serial.SerialNumber, serial.ProductSeriesId, serial.ReceivedDate?.ToString("yyyy-MM-dd") ?? "N/A");
+                                "✅ Selected {Count} serial numbers by FIFO for picking",
+                                serialNumbersToPick.Count);
+                            foreach (var serial in serialNumbersToPick)
+                            {
+                                _logger.LogInformation(
+                                    "  - Serial: {SerialNumber} (ID: {ProductSeriesId}, ReceivedDate: {ReceivedDate})",
+                                    serial.SerialNumber, serial.ProductSeriesId, serial.ReceivedDate?.ToString("yyyy-MM-dd") ?? "N/A");
+                            }
                         }
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "ProductId {ProductId} ({ProductName}) không sử dụng serial numbers, bỏ qua cập nhật serial numbers",
+                            d.ProductId, d.Product?.ProductName);
                     }
 
                     // Deduct from lots using FIFO và tính giá theo tỷ lệ

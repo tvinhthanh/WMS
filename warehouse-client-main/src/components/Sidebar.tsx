@@ -101,6 +101,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             <Link to="/admin/nhanvien" className={linkClass("/admin/nhanvien")} onClick={onClose}>
                                 Quản lý nhân viên
                             </Link>
+                            <Link to="/admin/password-reset-requests" className={linkClass("/admin/password-reset-requests")} onClick={onClose}>
+                                Yêu cầu Reset Mật khẩu
+                            </Link>
                         </>
                     )}
 

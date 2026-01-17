@@ -9,6 +9,7 @@ namespace WMS1.DTO
         public string OrderCode { get; set; }
         public int CreateByUserId { get; set; }
         public DateTime CreateDate { get; set; }
+        public DateTime? PickedDate { get; set; } // Ngày xuất (lấy từ serial number đầu tiên nếu có)
         public string Status { get; set; }
 
         public int PartnerId { get; set; }

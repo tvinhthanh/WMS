@@ -21,6 +21,7 @@ namespace WMS1.DTO
         public int ProductSeriesId { get; set; }
         public string SerialNumber { get; set; }
         public string Status { get; set; }
+        public DateTime? PickedDate { get; set; } // Ngày xuất
     }
 }
 

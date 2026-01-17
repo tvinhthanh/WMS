@@ -108,6 +108,7 @@ const PickingPage = () => {
                 "Nhà phân phối": order.partnerName || "",
                 "Người tạo": getUserName(order),
                 "Ngày tạo": order.createDate ? formatDate(order.createDate) : "",
+                "Ngày xuất": order.pickedDate ? formatDate(order.pickedDate) : "",
                 "Trạng thái": formatStatus(order.status),
                 "Số sản phẩm": order.details?.length || 0,
                 "Ghi chú": ""
@@ -203,6 +204,7 @@ const PickingPage = () => {
                                     <th className="p-3 text-left font-semibold">Mã phiếu</th>
                                     <th className="p-3 text-left font-semibold">Người tạo</th>
                                     <th className="p-3 text-left font-semibold">Ngày tạo</th>
+                                    <th className="p-3 text-left font-semibold">Ngày xuất</th>
                                     <th className="p-3 text-left font-semibold">Trạng thái</th>
                                     <th className="p-3 text-center font-semibold">Số SP</th>
                                     <th className="p-3 text-right font-semibold">Thao tác</th>
@@ -222,6 +224,9 @@ const PickingPage = () => {
                                         </td>
                                         <td className="p-3 text-sm">
                                             {formatDate(order.createDate)}
+                                        </td>
+                                        <td className="p-3 text-sm text-gray-600">
+                                            {order.pickedDate ? formatDate(order.pickedDate) : "—"}
                                         </td>
                                         <td className="p-3">
                                             <span
@@ -322,11 +327,21 @@ const PickingPage = () => {
                                         </span>
                                     </div>
 
-                                    <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
-                                        <span>{formatDate(order.createDate)}</span>
-                                        <span className="font-medium">
-                                            {order.details?.length || 0} sản phẩm
-                                        </span>
+                                    <div className="space-y-1 text-sm text-gray-600 mb-3">
+                                        <div className="flex justify-between">
+                                            <span>Ngày tạo:</span>
+                                            <span>{formatDate(order.createDate)}</span>
+                                        </div>
+                                        {order.pickedDate && (
+                                            <div className="flex justify-between">
+                                                <span>Ngày xuất:</span>
+                                                <span>{formatDate(order.pickedDate)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                            <span>Số sản phẩm:</span>
+                                            <span className="font-medium">{order.details?.length || 0}</span>
+                                        </div>
                                     </div>
 
                                     <div className="flex gap-2 pt-3 border-t">

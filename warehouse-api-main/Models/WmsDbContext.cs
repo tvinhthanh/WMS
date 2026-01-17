@@ -278,14 +278,14 @@ namespace WMS1.Models
                       .HasDefaultValueSql("(getdate())");
 
                 entity.HasOne(e => e.PickingDetail)
-                      .WithMany()
+                      .WithMany(d => d.PickingSerialDetails)
                       .HasForeignKey(e => e.PickingDetailId)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.ProductSeries)
                       .WithMany()
                       .HasForeignKey(e => e.ProductSeriesId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Product)
                       .WithMany()
@@ -564,6 +564,38 @@ namespace WMS1.Models
                       .WithMany()
                       .HasForeignKey(e => e.ReportedByUserId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ===========================
+            // PASSWORD RESET REQUEST
+            // ===========================
+            modelBuilder.Entity<PasswordResetRequest>(entity =>
+            {
+                entity.ToTable("PasswordResetRequests");
+                entity.HasKey(e => e.PasswordResetRequestId);
+
+                entity.Property(e => e.LoginInfo).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.UserFullName).HasMaxLength(255);
+                entity.Property(e => e.UserEmployeeCode).HasMaxLength(50);
+                entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
+                entity.Property(e => e.Notes).HasMaxLength(500);
+
+                entity.Property(e => e.RequestDate)
+                      .HasColumnType("datetime")
+                      .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ProcessedDate)
+                      .HasColumnType("datetime");
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.ProcessedByUser)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProcessedByUserId)
+                      .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }

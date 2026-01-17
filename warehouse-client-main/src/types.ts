@@ -223,6 +223,7 @@ export interface SerialNumberInfo {
   productSeriesId: number;
   serialNumber: string;
   status: string;
+  pickedDate?: string; // Ngày xuất
 }
 
 export interface InventoryDetailDTO {
@@ -378,6 +379,7 @@ export interface PickingOrderDTO {
     email: string;
   };
   createDate: string;
+  pickedDate?: string; // Ngày xuất
   status: string;
   partnerId: number;
   partnerName: string;
