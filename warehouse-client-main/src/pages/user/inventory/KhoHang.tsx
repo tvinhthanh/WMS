@@ -409,7 +409,7 @@ const InventoryPage = () => {
                                                                     <span 
                                                                         key={sn.productSeriesId}
                                                                         className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200"
-                                                                        title={`ID: ${sn.productSeriesId}, Status: ${sn.status}`}
+                                                                        title={`ID: ${sn.productSeriesId}, Status: ${sn.status}${sn.pickedDate ? `, Ngày xuất: ${new Date(sn.pickedDate).toLocaleDateString('vi-VN')}` : ''}`}
                                                                     >
                                                                         {sn.serialNumber}
                                                                     </span>

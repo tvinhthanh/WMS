@@ -74,7 +74,6 @@ const ProductSeriesModal = ({ isOpen, onClose, product }: Props) => {
                                         <th className="border p-2 text-left">Số series</th>
                                         <th className="border p-2 text-left">Trạng thái</th>
                                         <th className="border p-2 text-left">Ngày nhập</th>
-                                        <th className="border p-2 text-left">Ngày xuất</th>
                                         <th className="border p-2 text-left">Lô hàng (FIFO)</th>
                                         <th className="border p-2 text-left">Ghi chú</th>
                                         <th className="border p-2 text-left">Thao tác</th>
@@ -97,9 +96,6 @@ const ProductSeriesModal = ({ isOpen, onClose, product }: Props) => {
                                             </td>
                                             <td className="border p-2 text-sm">
                                                 {s.receivedDate ? new Date(s.receivedDate).toLocaleDateString('vi-VN') : "—"}
-                                            </td>
-                                            <td className="border p-2 text-sm">
-                                                {s.pickedDate ? new Date(s.pickedDate).toLocaleDateString('vi-VN') : "—"}
                                             </td>
                                             <td className="border p-2 text-sm">
                                                 {s.inventoryDetailId ? (
