@@ -8,7 +8,9 @@ import { productService } from "../../../services/product.service";
 import { extractDataFromResponse, extractPaginationFromResponse } from "../../../utils/pagination";
 import { formatDate } from "../../../utils/dateUtils";
 import Pagination from "../../../components/Pagination";
-// 
+
+
+// Define tab types
 type TabType = "summary" | "details" | "movements";
 
 const InventoryPage = () => {
@@ -20,7 +22,7 @@ const InventoryPage = () => {
     const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7)); // Format: YYYY-MM
     const [inventoryReport, setInventoryReport] = useState<InventorySummaryDTO[]>([]);
     const [reportLoading, setReportLoading] = useState(false);
-
+    
     const [page, setPage] = useState(1);
     const pageSize = 50;
 

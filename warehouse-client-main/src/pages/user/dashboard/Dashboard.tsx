@@ -1,3 +1,4 @@
+
 import { useQuery } from "react-query";
 import { Package, ArrowDownCircle, ArrowUpCircle, ClipboardList, TrendingUp, TrendingDown, Download } from "lucide-react";
 import { inventoryService } from "../../../services/inventory.service";
@@ -8,7 +9,7 @@ import { stockTakeService } from "../../../services/stocktake.service";
 import { InventoryDTO, ReceivingDTO, PickingOrderDTO, ProductDTO } from "../../../types";
 import { exportMultipleSheets } from "../../../utils/excelExport";
 import { extractDataFromResponse } from "../../../utils/pagination";
-import { isInCurrentMonth, isDateMatch, getLastNDays } from "../../../utils/dateUtils";
+import { isInCurrentMonth, isDateMatch, get30Days, get7Days } from "../../../utils/dateUtils";
 
 const Dashboard = () => {
     const { data: inventoryResponse, isLoading: loadingInventories } = useQuery("inventories", inventoryService.getAll, {
@@ -24,7 +25,7 @@ const Dashboard = () => {
         retry: false
     });
     const { data: stockTakesResponse, isLoading: loadingStockTakes } = useQuery(
-        "stockTakes", 
+        "stockTakes",
         () => stockTakeService.getAll().catch(() => []),
         {
             retry: false
@@ -46,15 +47,15 @@ const Dashboard = () => {
     const totalInventoryValue = 0; // Tạm thời để 0, có thể tính từ InventoryDetail nếu cần
 
     const totalQuantity = inventories.reduce((sum, inv) => sum + inv.quantity, 0);
-    
+
     const receivingsThisMonth = receivings.filter((r) => isInCurrentMonth(r.createdDate || "")).length;
     const pickingsThisMonth = pickings.filter((p) => isInCurrentMonth(p.createDate || "")).length;
     const completedStockTakes = stockTakes.filter((st) => st.status === "Completed").length;
     const pendingStockTakes = stockTakes.filter((st) => st.status === "Pending").length;
     const lowStockProducts = inventories.filter((inv) => inv.quantity < 10).length;
 
-    // Biểu đồ nhập/xuất 7 ngày gần nhất
-    const last7Days = getLastNDays(7);
+    // Biểu đồ nhập/xuất 30 ngày hoặc 7 ngày gần nhất
+    const last7Days = get7Days();
 
     const receivingChartData = last7Days.map(date => {
         const count = receivings.filter((r) => isDateMatch(r.createdDate, date)).length;
@@ -192,7 +193,7 @@ const Dashboard = () => {
                         <ArrowDownCircle className="w-5 h-5 text-green-600" />
                         Nhập hàng (7 ngày)
                     </h2>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                         {receivingChartData.map((item, index) => (
                             <div key={index} className="flex items-center gap-3">
                                 <span className="text-sm text-gray-600 w-16">{item.date}</span>
@@ -216,7 +217,7 @@ const Dashboard = () => {
                         <ArrowUpCircle className="w-5 h-5 text-red-600" />
                         Xuất hàng (7 ngày)
                     </h2>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                         {pickingChartData.map((item, index) => (
                             <div key={index} className="flex items-center gap-3">
                                 <span className="text-sm text-gray-600 w-16">{item.date}</span>

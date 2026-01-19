@@ -9,7 +9,7 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Auto attach TOKEN
+// Auto attach TOKEN JWT vào header mỗi request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 

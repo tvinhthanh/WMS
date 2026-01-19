@@ -10,7 +10,72 @@ import { extractDataFromResponse, extractPaginationFromResponse } from "../../..
 import { formatDate } from "../../../utils/dateUtils";
 import Pagination from "../../../components/Pagination";
 
+
+type SearchDate =
+    | { type: "day"; day: number }
+    | { type: "day-month"; day: number; month: number }
+    | { type: "full"; day: number; month: number; year: number }
+    | null;
+
+const parseSearchDate = (value: string): SearchDate => {
+    if (!value) return null;
+
+    const parts = value.split("/").map(Number);
+
+    // dd
+    if (parts.length === 1 && parts[0]) {
+        return { type: "day", day: parts[0] };
+    }
+
+    // dd/MM
+    if (parts.length === 2 && parts[0] && parts[1]) {
+        return { type: "day-month", day: parts[0], month: parts[1] - 1 };
+    }
+
+    // dd/MM/yyyy
+    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+        return {
+            type: "full",
+            day: parts[0],
+            month: parts[1] - 1,
+            year: parts[2],
+        };
+    }
+
+    return null;
+};
+
+const matchDate = (dateStr: string | undefined, search: SearchDate) => {
+    if (!dateStr || dateStr.startsWith("0001")) return false;
+
+    const d = new Date(dateStr);
+
+    switch (search?.type) {
+        case "day":
+            return d.getDate() === search.day;
+
+        case "day-month":
+            return (
+                d.getDate() === search.day &&
+                d.getMonth() === search.month
+            );
+
+        case "full":
+            return (
+                d.getDate() === search.day &&
+                d.getMonth() === search.month &&
+                d.getFullYear() === search.year
+            );
+
+        default:
+            return false;
+    }
+};
+
+
+
 const PickingPage = () => {
+    const [searchTerm, setSearchTerm] = useState("");
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -35,6 +100,30 @@ const PickingPage = () => {
     // Extract data và pagination từ response
     const orders = extractDataFromResponse<PickingOrderDTO>(response);
     const pagination = extractPaginationFromResponse(response);
+    const searchDate = parseSearchDate(searchTerm.trim().toLowerCase());
+
+    const filteredOrders = orders.filter((order) => {
+        const keyword = searchTerm.toLowerCase();
+
+        // TEXT SEARCH
+        const matchText =
+            order.orderCode?.toLowerCase().includes(keyword) ||
+            order.pickingOrderId?.toString().includes(keyword);
+
+        // DATE SEARCH 
+        if (searchDate) {
+            // ngày xuất
+            if (matchDate(order.pickedDate, searchDate)) return true;
+
+            // ngày tạo
+            if (matchDate(order.createDate, searchDate)) return true;
+
+            return false;
+        }
+
+        return matchText;
+    });
+
 
     const completeMutation = useMutation(pickingService.complete, {
         onSuccess: () => {
@@ -46,12 +135,12 @@ const PickingPage = () => {
         onError: (error: any) => {
             // Lấy message từ error response hoặc error message
             let errorMessage = "Đã xảy ra lỗi khi hoàn tất phiếu xuất";
-            
+
             if (error?.response?.data) {
                 // Backend trả về string trực tiếp
                 if (typeof error.response.data === "string") {
                     errorMessage = error.response.data;
-                } 
+                }
                 // Hoặc object có message
                 else if (error.response.data.message) {
                     errorMessage = error.response.data.message;
@@ -59,7 +148,7 @@ const PickingPage = () => {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             alert(`Lỗi: ${errorMessage}`);
         }
     });
@@ -71,7 +160,7 @@ const PickingPage = () => {
         },
         onError: (error: any) => {
             let errorMessage = "Đã xảy ra lỗi khi hủy phiếu xuất";
-            
+
             if (error?.response?.data) {
                 if (typeof error.response.data === "string") {
                     errorMessage = error.response.data;
@@ -81,7 +170,7 @@ const PickingPage = () => {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             alert(`Lỗi: ${errorMessage}`);
         }
     });
@@ -133,6 +222,7 @@ const PickingPage = () => {
     };
 
 
+
     // Helper để format trạng thái giống với giao diện
     const formatStatus = (status: string): string => {
         if (status === "Completed") return "Đã hoàn tất";
@@ -178,6 +268,19 @@ const PickingPage = () => {
                 </div>
             </div>
 
+            {/* FILTER */}
+            <div className="bg-white rounded-lg shadow p-4 mb-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Tìm theo mã phiếu, ID hoặc ngày (dd/MM/yyyy)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-4 pr-4 py-2 border rounded"
+                    />
+                </div>
+            </div>
+
             {/* LIST */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 {isLoading ? (
@@ -198,106 +301,106 @@ const PickingPage = () => {
                     <>
                         {/* Desktop Table View */}
                         <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
-                                <tr>
-                                    <th className="p-3 text-left font-semibold">Mã phiếu</th>
-                                    <th className="p-3 text-left font-semibold">Người tạo</th>
-                                    <th className="p-3 text-left font-semibold">Ngày tạo</th>
-                                    <th className="p-3 text-left font-semibold">Ngày xuất</th>
-                                    <th className="p-3 text-left font-semibold">Trạng thái</th>
-                                    <th className="p-3 text-center font-semibold">Số SP</th>
-                                    <th className="p-3 text-right font-semibold">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map((order) => (
-                                    <tr
-                                        key={order.pickingOrderId}
-                                        className="border-b hover:bg-gray-50 transition"
-                                    >
-                                        <td className="p-3 font-mono text-sm">
-                                            {order.orderCode}
-                                        </td>
-                                        <td className="p-3">
-                                            {getUserName(order)}
-                                        </td>
-                                        <td className="p-3 text-sm">
-                                            {formatDate(order.createDate)}
-                                        </td>
-                                        <td className="p-3 text-sm text-gray-600">
-                                            {order.pickedDate ? formatDate(order.pickedDate) : "—"}
-                                        </td>
-                                        <td className="p-3">
-                                            <span
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                        <th className="p-3 text-left font-semibold">Mã phiếu</th>
+                                        <th className="p-3 text-left font-semibold">Người tạo</th>
+                                        <th className="p-3 text-left font-semibold">Ngày tạo</th>
+                                        <th className="p-3 text-left font-semibold">Ngày xuất</th>
+                                        <th className="p-3 text-left font-semibold">Trạng thái</th>
+                                        <th className="p-3 text-center font-semibold">Số SP</th>
+                                        <th className="p-3 text-right font-semibold">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredOrders.map((order) => (
+                                        <tr
+                                            key={order.pickingOrderId}
+                                            className="border-b hover:bg-gray-50 transition"
+                                        >
+                                            <td className="p-3 font-mono text-sm">
+                                                {order.orderCode}
+                                            </td>
+                                            <td className="p-3">
+                                                {getUserName(order)}
+                                            </td>
+                                            <td className="p-3 text-sm">
+                                                {formatDate(order.createDate)}
+                                            </td>
+                                            <td className="p-3 text-sm text-gray-600">
+                                                {order.pickedDate ? formatDate(order.pickedDate) : "—"}
+                                            </td>
+                                            <td className="p-3">
+                                                <span
                                                     className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "Completed"
                                                         ? "bg-green-100 text-green-700"
                                                         : order.status === "Cancelled"
-                                                        ? "bg-red-100 text-red-700"
-                                                        : "bg-yellow-100 text-yellow-700"
-                                                }`}
-                                            >
-                                                {order.status === "Completed" 
-                                                    ? "Đã hoàn tất" 
-                                                    : order.status === "Cancelled"
-                                                    ? "Đã hủy"
-                                                    : "Chờ xử lý"}
-                                            </span>
-                                        </td>
-
-                                        <td className="p-3 text-center font-medium">
-                                            {order.details?.length || 0}
-                                        </td>
-
-                                        <td className="p-3">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleViewOrder(order)}
-                                                    className="p-2 rounded hover:bg-gray-100 transition"
-                                                    title="Xem chi tiết"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : "bg-yellow-100 text-yellow-700"
+                                                        }`}
                                                 >
-                                                    <Eye className="w-4 h-4 text-gray-600" />
-                                                </button>
+                                                    {order.status === "Completed"
+                                                        ? "Đã hoàn tất"
+                                                        : order.status === "Cancelled"
+                                                            ? "Đã hủy"
+                                                            : "Chờ xử lý"}
+                                                </span>
+                                            </td>
 
-                                                <button
-                                                    onClick={() => handleManageItems(order)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
-                                                    title="Quản lý sản phẩm"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
+                                            <td className="p-3 text-center font-medium">
+                                                {order.details?.length || 0}
+                                            </td>
 
-                                                {order.status === "Pending" && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleCancel(order.pickingOrderId)}
-                                                            className="p-2 text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50"
-                                                            title="Hủy phiếu xuất"
-                                                            disabled={cancelMutation.isLoading}
-                                                        >
-                                                            <XCircle className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleComplete(order.pickingOrderId)}
-                                                            className="p-2 text-green-600 hover:bg-green-50 rounded transition disabled:opacity-50"
-                                                            title="Hoàn tất phiếu xuất"
-                                                            disabled={completeMutation.isLoading}
-                                                        >
-                                                            <CheckCircle className="w-4 h-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                            <td className="p-3">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleViewOrder(order)}
+                                                        className="p-2 rounded hover:bg-gray-100 transition"
+                                                        title="Xem chi tiết"
+                                                    >
+                                                        <Eye className="w-4 h-4 text-gray-600" />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleManageItems(order)}
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
+                                                        title="Quản lý sản phẩm"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+
+                                                    {order.status === "Pending" && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleCancel(order.pickingOrderId)}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50"
+                                                                title="Hủy phiếu xuất"
+                                                                disabled={cancelMutation.isLoading}
+                                                            >
+                                                                <XCircle className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleComplete(order.pickingOrderId)}
+                                                                className="p-2 text-green-600 hover:bg-green-50 rounded transition disabled:opacity-50"
+                                                                title="Hoàn tất phiếu xuất"
+                                                                disabled={completeMutation.isLoading}
+                                                            >
+                                                                <CheckCircle className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-3">
-                            {orders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <div
                                     key={order.pickingOrderId}
                                     className="bg-white border rounded-lg p-4 shadow-sm"
@@ -313,17 +416,17 @@ const PickingPage = () => {
                                         </div>
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "Completed"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : order.status === "Cancelled"
+                                                ? "bg-green-100 text-green-700"
+                                                : order.status === "Cancelled"
                                                     ? "bg-red-100 text-red-700"
                                                     : "bg-yellow-100 text-yellow-700"
-                                            }`}
+                                                }`}
                                         >
-                                            {order.status === "Completed" 
-                                                ? "Đã hoàn tất" 
+                                            {order.status === "Completed"
+                                                ? "Đã hoàn tất"
                                                 : order.status === "Cancelled"
-                                                ? "Đã hủy"
-                                                : "Chờ xử lý"}
+                                                    ? "Đã hủy"
+                                                    : "Chờ xử lý"}
                                         </span>
                                     </div>
 

@@ -18,7 +18,7 @@ public class ReceivingCreateDetailDTO
     public string? DamageReason { get; set; }
 }
 
-// ✅ DTO cho cập nhật mã phiếu giao hàng
+//  DTO cho cập nhật mã phiếu giao hàng
 public class UpdateDeliveryCodeDTO
 {
     public string? DeliveryCode { get; set; }

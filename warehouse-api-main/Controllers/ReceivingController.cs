@@ -75,8 +75,8 @@ namespace WMS1.Controllers
             await _db.SaveChangesAsync();
         }
 
-        // ✅ TỰ ĐỘNG TẠO PHIẾU XUẤT TRẢ VÀ PHIẾU NHẬP MỚI KHI PHÁT HIỆN HÀNG LỖI TRONG PHIẾU NHẬP
-        // Note: Không dùng transaction riêng vì method này được gọi từ trong transaction của UpdateActual
+        // TỰ ĐỘNG TẠO PHIẾU XUẤT TRẢ VÀ PHIẾU NHẬP MỚI KHI PHÁT HIỆN HÀNG LỖI TRONG PHIẾU NHẬP
+        // Không dùng transaction riêng vì method này được gọi từ trong transaction của UpdateActual
         private async Task CreateReturnAndReplacementOrdersAsync(Receiving originalReceiving, List<ReceivingDetail> damagedDetails)
         {
             try
@@ -240,7 +240,7 @@ namespace WMS1.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         {
-            // ✅ Tối ưu: Thêm pagination để tránh load quá nhiều data
+            // Tối ưu: Thêm pagination để tránh load quá nhiều data
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 50; // Giới hạn tối đa 100 items/page
 
@@ -375,7 +375,7 @@ namespace WMS1.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ReceivingCreateDTO dto)
         {
-            // ✅ Tối ưu: Sử dụng transaction để đảm bảo data consistency
+            // Sử dụng transaction để đảm bảo data consistency
             using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
@@ -415,7 +415,7 @@ namespace WMS1.Controllers
                         return BadRequest($"Sản phẩm thứ {i + 1}: Không tìm thấy sản phẩm với ProductId = {item.ProductId}.");
                 }
 
-                // ✅ Validation: Kiểm tra tổng giá trị phiếu nhập không được vượt quá 6 tỷ
+                //  Validation: Kiểm tra tổng giá trị phiếu nhập không được vượt quá 6 tỷ
                 decimal totalAmount = dto.Details.Sum(d => d.Price * d.Quantity);
                 const decimal MAX_TOTAL_AMOUNT = 6_000_000_000m; // 6 tỷ
 
@@ -437,10 +437,10 @@ namespace WMS1.Controllers
                 };
 
                 _db.Receivings.Add(receiving);
-                // ✅ Tối ưu: Lưu Receiving trước để có ReceivingId, sau đó thêm tất cả Details và save một lần
+                //  Tối ưu: Lưu Receiving trước để có ReceivingId, sau đó thêm tất cả Details và save một lần
                 await _db.SaveChangesAsync();
 
-                // ✅ Tối ưu: Sử dụng AddRange thay vì Add trong loop
+                // Tối ưu: Sử dụng AddRange thay vì Add trong loop
                 var receivingDetails = dto.Details.Select(item => new ReceivingDetail
                     {
                         ReceivingId = receiving.ReceivingId,
@@ -501,6 +501,11 @@ namespace WMS1.Controllers
                         detail.ActualQuantity = item.ActualQuantity;
                         detail.DamageQuantity = item.DamageQuantity;
                         detail.DamageReason = item.DamageReason;
+                        
+                        if (item.Price.HasValue)
+                        {
+                            detail.Price = item.Price.Value;
+                        }
                     }
                 }
 
@@ -512,7 +517,7 @@ namespace WMS1.Controllers
                 bool anyActual = receiving.ReceivingDetails
                     .Any(d => (d.ActualQuantity ?? 0) > 0 || (d.DamageQuantity ?? 0) > 0);
 
-                // ✅ KIỂM TRA HÀNG LỖI TRƯỚC - Tự động tạo phiếu xuất trả và phiếu nhập mới ngay khi có hàng lỗi
+                //  KIỂM TRA HÀNG LỖI TRƯỚC - Tự động tạo phiếu xuất trả và phiếu nhập mới ngay khi có hàng lỗi
                 var damagedDetails = receiving.ReceivingDetails.Where(x => (x.DamageQuantity ?? 0) > 0).ToList();
                 if (damagedDetails.Any())
                 {
@@ -574,7 +579,7 @@ namespace WMS1.Controllers
                         };
                         _db.InventoryLogs.Add(inventoryLog);
 
-                        // ✅ TỰ ĐỘNG TẠO SERIAL NUMBER CHO TỪNG SẢN PHẨM TRONG LÔ HÀNG
+                        //  TỰ ĐỘNG TẠO SERIAL NUMBER CHO TỪNG SẢN PHẨM TRONG LÔ HÀNG
                         var product = await _db.Products.FindAsync(d.ProductId);
                         if (product != null)
                         {
@@ -629,7 +634,7 @@ namespace WMS1.Controllers
             }
         }
 
-        // ✅ HỦY PHIẾU NHẬP ĐANG PENDING
+        //HỦY PHIẾU NHẬP ĐANG PENDING
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -669,7 +674,7 @@ namespace WMS1.Controllers
             }
         }
 
-        // ✅ CẬP NHẬT MÃ PHIẾU GIAO HÀNG BẰNG TAY
+        // CẬP NHẬT MÃ PHIẾU GIAO HÀNG BẰNG TAY
         [HttpPut("{id}/delivery-code")]
         public async Task<IActionResult> UpdateDeliveryCode(int id, [FromBody] UpdateDeliveryCodeDTO dto)
         {
@@ -727,7 +732,7 @@ namespace WMS1.Controllers
             }
         }
 
-        // ✅ IN PHIẾU NHẬP - Cho phép in sau khi tạo phiếu và có hàng, trước khi kiểm tra lại
+        // IN PHIẾU NHẬP - Cho phép in sau khi tạo phiếu và có hàng, trước khi kiểm tra lại
         [HttpGet("{id}/print")]
         public async Task<IActionResult> Print(int id)
         {
@@ -854,7 +859,7 @@ namespace WMS1.Controllers
             }
         }
 
-        // ✅ THỐNG KÊ NHẬP THEO THỜI GIAN
+        // THỐNG KÊ NHẬP THEO THỜI GIAN
         [HttpGet("report")]
         public async Task<IActionResult> GetReport([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
         {

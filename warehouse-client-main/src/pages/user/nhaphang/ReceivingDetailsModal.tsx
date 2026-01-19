@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "react-query";
 import { useEffect, useState } from "react";
 import { Package, DollarSign, Calendar, Tag } from "lucide-react";
 import { receivingService } from "../../../services/receiving.service";
+import { productService } from "../../../services/product.service";
 
-const formatVND = (value: number ) =>
+const formatVND = (value: number) =>
     value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-
+// Alternative simpler format:
+    //value.toLocaleString("vi-VN") + " đồng";
 const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
     const queryClient = useQueryClient();
 
@@ -20,7 +22,7 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
             }
             return receivingService.getById(receivingId);
         },
-        { 
+        {
             enabled: !!receivingId && isOpen,
             retry: 1,
             refetchOnWindowFocus: false,
@@ -37,19 +39,67 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
     const [actualList, setActualList] = useState<any[]>([]);
     const [deliveryCode, setDeliveryCode] = useState<string>("");
     const [isEditingDeliveryCode, setIsEditingDeliveryCode] = useState(false);
+    const [suggestedPrices, setSuggestedPrices] = useState<Record<number, number>>({});
+
+    useEffect(() => {
+        const fetchSuggestedPrices = async () => {
+            if (details.length > 0 && receiving?.partnerId) {
+                const prices: Record<number, number> = {};
+                await Promise.all(details.map(async (d: any) => {
+                    try {
+                        const partners = await productService.getPartners(d.productId);
+                        const match = partners.find((p: any) => p.partnerId === receiving.partnerId);
+                        if (match?.defaultPrice) {
+                            prices[d.productId] = match.defaultPrice;
+                        }
+                    } catch (e) {
+                        console.error("Error fetching partner price", e);
+                    }
+                }));
+                setSuggestedPrices(prices);
+            }
+        };
+        fetchSuggestedPrices();
+    }, [details, receiving?.partnerId]);
 
     useEffect(() => {
         if (details.length > 0) {
             setActualList(
-                details.map((d: any) => ({
-                    receivingDetailId: d.receivingDetailId,
-                    actualQuantity: d.actualQuantity ?? d.quantity,
-                    damageQuantity: d.damageQuantity ?? 0,
-                    damageReason: d.damageReason ?? ""
-                }))
+                details.map((d: any) => {
+                    const price = d.price || 0;
+                    return {
+                        receivingDetailId: d.receivingDetailId,
+                        actualQuantity: d.actualQuantity ?? d.quantity,
+                        damageQuantity: d.damageQuantity ?? 0,
+                        damageReason: d.damageReason ?? "",
+                        price: price,
+                        totalPrice: price * (d.actualQuantity ?? d.quantity)
+                    };
+                })
             );
         }
     }, [details]);
+
+    // Update actualList with suggested prices when they are loaded and if current price is 0
+    useEffect(() => {
+        if (Object.keys(suggestedPrices).length > 0) {
+            setActualList(prev => prev.map(item => {
+                const detail = details.find((d: any) => d.receivingDetailId === item.receivingDetailId);
+                if (!detail) return item;
+
+                const suggested = suggestedPrices[detail.productId];
+                // If item has no price set (or 0), use suggested
+                if (item.totalPrice === 0 && suggested) {
+                    return {
+                        ...item,
+                        price: suggested,
+                        totalPrice: suggested * item.actualQuantity
+                    };
+                }
+                return item;
+            }));
+        }
+    }, [suggestedPrices, details]);
 
     useEffect(() => {
         if (rawData?.deliveryCode) {
@@ -84,13 +134,13 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                 await queryClient.invalidateQueries(["receiving-details", receiving?.receivingId]);
                 // Refetch để đảm bảo dữ liệu được cập nhật
                 await queryClient.refetchQueries("receivings");
-            alert("Đã hủy phiếu nhập thành công!");
-            onClose();
-        },
-        onError: (error: any) => {
+                alert("Đã hủy phiếu nhập thành công!");
+                onClose();
+            },
+            onError: (error: any) => {
                 console.error("Error cancelling receiving:", error);
                 let errorMessage = "Không thể hủy phiếu nhập.";
-                
+
                 if (error?.response?.data) {
                     if (typeof error.response.data === "string") {
                         errorMessage = error.response.data;
@@ -100,9 +150,9 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                 } else if (error?.message) {
                     errorMessage = error.message;
                 }
-                
+
                 alert(errorMessage);
-        }
+            }
         }
     );
 
@@ -118,19 +168,19 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                 await queryClient.invalidateQueries("receivings");
                 await queryClient.invalidateQueries(["receiving-details", receiving?.receivingId]);
                 await queryClient.refetchQueries(["receiving-details", receiving?.receivingId]);
-                
+
                 // Cập nhật lại deliveryCode từ response để đảm bảo đồng bộ
                 if (data?.deliveryCode !== undefined) {
                     setDeliveryCode(data.deliveryCode || "");
                 }
-                
+
                 alert("Đã cập nhật mã phiếu giao hàng thành công!");
                 setIsEditingDeliveryCode(false);
             },
             onError: (error: any) => {
                 console.error("Error updating delivery code:", error);
                 let errorMessage = "Không thể cập nhật mã phiếu giao hàng.";
-                
+
                 if (error?.response?.data) {
                     if (typeof error.response.data === "string") {
                         errorMessage = error.response.data;
@@ -140,7 +190,7 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                 } else if (error?.message) {
                     errorMessage = error.message;
                 }
-                
+
                 alert(errorMessage);
                 // Không đóng chế độ edit nếu có lỗi để user có thể sửa lại
             }
@@ -154,7 +204,8 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                 receivingDetailId: item.receivingDetailId,
                 actualQuantity: item.actualQuantity || 0,
                 damageQuantity: item.damageQuantity || 0,
-                damageReason: item.damageReason || null
+                damageReason: item.damageReason || null,
+                price: item.actualQuantity > 0 ? (item.totalPrice / item.actualQuantity) : item.price // Calculate unit price
             }))
         });
     };
@@ -162,9 +213,10 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
     const isCompleted = status === 1;
     const isCancelled = status === 3;
 
-  
+    // Tính tổng tiền từ chi tiết
+    // Lấy tổng + giá tiền * số lượng
     const totalMoney = details.reduce((sum: number, d: any) => {
-    return sum + d.price;
+        return sum + d.price * d.quantity;
     }, 0);
 
 
@@ -249,13 +301,13 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                                     <button
                                         onClick={() => {
                                             const trimmedCode = deliveryCode.trim();
-                                            
+
                                             // Validation: Kiểm tra độ dài
                                             if (trimmedCode.length > 50) {
                                                 alert("Mã phiếu giao hàng không được vượt quá 50 ký tự.");
                                                 return;
                                             }
-                                            
+
                                             // Cho phép để trống (null) hoặc có giá trị
                                             updateDeliveryCodeMutation.mutate(trimmedCode || null);
                                         }}
@@ -310,15 +362,14 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                         <p className="mt-2">
                             <strong>Trạng thái:</strong>{" "}
                             <span
-                                className={`px-2 py-1 rounded text-xs ${
-                                    status === 1
-                                        ? "bg-green-100 text-green-700"
-                                        : status === 3
+                                className={`px-2 py-1 rounded text-xs ${status === 1
+                                    ? "bg-green-100 text-green-700"
+                                    : status === 3
                                         ? "bg-red-100 text-red-700"
                                         : status === 2
-                                        ? "bg-orange-100 text-orange-700"
-                                        : "bg-yellow-100 text-yellow-700"
-                                }`}
+                                            ? "bg-orange-100 text-orange-700"
+                                            : "bg-yellow-100 text-yellow-700"
+                                    }`}
                             >
                                 {status === 1 ? "Đã hoàn tất" : status === 3 ? "Đã hủy" : status === 2 ? "Một phần" : "Chờ xử lý"}
                             </span>
@@ -403,7 +454,16 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                                     </td>
 
                                     <td className="border p-2 text-right">
-                                        {d.price.toLocaleString()}
+                                        <div className="flex flex-col items-end gap-1">
+                                            <div className="border rounded p-1 w-28 text-right font-bold bg-gray-100">
+                                                {formatVND(actualList[idx]?.totalPrice ?? 0)}
+                                            </div>
+                                            <div className="text-xs text-gray-500 disabled" >
+                                                Đơn giá: {actualList[idx]?.actualQuantity > 0
+                                                    ? formatVND(actualList[idx].totalPrice / actualList[idx].actualQuantity)
+                                                    : formatVND(0)} / cái
+                                            </div>
+                                        </div>
                                     </td>
 
                                     {isCompleted && (
@@ -418,21 +478,18 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
                                                                 <Package className="w-3 h-3" />
                                                                 <span>Số lượng: {d.serialNumbers.length} cái</span>
                                                             </div>
-                                                            <div className="flex items-center gap-1">
-                                                                <DollarSign className="w-3 h-3" />
-                                                                <span>Giá: {d.price.toLocaleString()} VNĐ</span>
-                                                            </div>
+
                                                             <div className="flex items-center gap-1">
                                                                 <Calendar className="w-3 h-3" />
                                                                 <span>Ngày nhập: {rawData?.receivedDate ? new Date(rawData.receivedDate).toLocaleDateString('vi-VN') : '—'}</span>
                                                             </div>
                                                             <div className="flex items-center gap-1">
                                                                 <Tag className="w-3 h-3" />
-                                                                <span>Giá đơn vị: {d.quantity > 0 ? (d.price / d.quantity).toLocaleString() : 0} VNĐ/cái</span>
+                                                                <span>Giá đơn vị: {d.price.toLocaleString()} VNĐ/cái</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Danh sách SerialNumber */}
                                                     <div className="max-h-32 overflow-y-auto border rounded p-1 bg-gray-50">
                                                         <div className="text-xs font-semibold text-gray-600 mb-1">Danh sách SerialNumber:</div>
@@ -471,12 +528,15 @@ const ReceivingDetailModal = ({ isOpen, onClose, receiving }: any) => {
 
                 {/*HIỆN TỔNG TIỀN*/}
                 <div className="text-right font-bold text-lg py-2">
-                    Tổng tiền tổng : {formatVND(totalMoney)}
+                    Tổng tiền  : {formatVND(totalMoney)}
                 </div>
 
+                {/* 
                 <div className="text-right font-bold text-lg py-2">
-                    Tổng tiền chia đôi: {formatVND(totalMoney/2)}
+                   Tổng tiền chia đôi: {formatVND(totalMoney/2)}
                 </div>
+                */}
+
                 {/*NÚT*/}
                 <div className="flex justify-between mt-4">
                     <button

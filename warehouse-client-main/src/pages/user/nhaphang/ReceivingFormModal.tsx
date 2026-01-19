@@ -12,7 +12,7 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
     const { userId } = useAppContext();
 
     const { data: allPartners = [] } = useQuery("partners", partnerService.getAll);
-    
+
     // Chỉ hiển thị "Nhà cung cấp" cho phiếu nhập
     const partners = allPartners.filter((p: any) => p.partnerType === "Nhà cung cấp");
 
@@ -131,7 +131,7 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
         onError: (error: any) => {
             console.error("Error creating receiving:", error);
             let errorMessage = "Không thể tạo phiếu nhập.";
-            
+
             if (error?.response?.data) {
                 if (typeof error.response.data === "string") {
                     errorMessage = error.response.data;
@@ -147,7 +147,7 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             alert(`Lỗi: ${errorMessage}`);
         }
     });
@@ -265,23 +265,23 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
                         </div>
                     ) : (
                         <>
-                    <select
-                        value={partnerId}
+                            <select
+                                value={partnerId}
                                 onChange={(e) => {
                                     const newPartnerId = e.target.value ? Number(e.target.value) : "";
                                     setPartnerId(newPartnerId);
                                     // Xóa tất cả sản phẩm đã chọn khi đổi nhà cung cấp
                                     setForm({ ...form, details: [] });
                                 }}
-                        className="border p-2 rounded w-full mt-1"
-                    >
-                        <option value="">-- Chọn Partner --</option>
-                        {partners.map((p: any) => (
-                            <option key={p.partnerId} value={p.partnerId}>
-                                {p.partnerName}
-                            </option>
-                        ))}
-                    </select>
+                                className="border p-2 rounded w-full mt-1"
+                            >
+                                <option value="">-- Chọn Partner --</option>
+                                {partners.map((p: any) => (
+                                    <option key={p.partnerId} value={p.partnerId}>
+                                        {p.partnerName}
+                                    </option>
+                                ))}
+                            </select>
                             {partnerId && products.length === 0 && (
                                 <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                                     <p className="text-sm text-yellow-800">
@@ -327,118 +327,118 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
                     <>
                         {/* Desktop Table View */}
                         <div className="hidden md:block overflow-x-auto mb-4">
-                        <table className="w-full border text-sm">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="border p-2 text-center">Sản phẩm</th>
-                                    <th className="border p-2 text-center w-24">SL</th>
-                                    <th className="border p-2 text-center w-24">Đơn vị</th>
-                                    <th className="border p-2 text-center w-32">Giá</th>
-                                    <th className="border p-2 text-center w-48">Preview SerialNumber</th>
-                                    <th className="border p-2 text-center w-16"></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {form.details.map((item, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="border p-2">
-                                            <select
-                                                value={item.productId}
-                                                    className="border p-1 rounded w-full text-sm"
-                                                onChange={(e) =>
-                                                    updateItem(index, "productId", e.target.value)
-                                                }
-                                            >
-                                                <option value="">-- Chọn sản phẩm --</option>
-                                                {products.map((p: any) => (
-                                                    <option key={p.productId} value={p.productId}>
-                                                        {p.productName}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </td>
-
-                                        <td className="border p-2">
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                value={item.quantity}
-                                                    className="border p-1 rounded w-full text-center text-sm"
-                                                onChange={(e) =>
-                                                    updateItem(index, "quantity", Number(e.target.value))
-                                                }
-                                            />
-                                        </td>
-
-                                        <td className="border p-2">
-                                            <input
-                                                value={item.unit}
-                                                    className="border p-1 rounded w-full text-center text-sm"
-                                                onChange={(e) =>
-                                                    updateItem(index, "unit", e.target.value)
-                                                }
-                                                placeholder="pcs"
-                                            />
-                                        </td>
-
-                                        <td className="border p-2">
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                    className="border p-1 rounded w-full text-right text-sm"
-                                                value={item.price}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    if (value > 0 || e.target.value === "") {
-                                                        updateItem(index, "price", value);
-                                                    }
-                                                }}
-                                                placeholder="Nhập giá"
-                                            />
-                                        </td>
-
-                                        <td className="border p-2">
-                                            {item.productId && item.quantity > 0 ? (
-                                                <div className="text-xs">
-                                                    <div className="max-h-20 overflow-y-auto bg-gray-50 p-1 rounded">
-                                                        {generateSerialPreview(
-                                                            products.find((p: any) => p.productId === Number(item.productId))?.productCode || "",
-                                                            item.quantity,
-                                                            "PN-XXX"
-                                                        ).slice(0, 5).map((sn, i) => (
-                                                            <div key={i} className="font-mono text-blue-600">
-                                                                {sn}
-                                                            </div>
-                                                        ))}
-                                                        {item.quantity > 5 && (
-                                                            <div className="text-gray-500 italic">
-                                                                ... và {item.quantity - 5} số khác
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-gray-500 mt-1">
-                                                        Format: {products.find((p: any) => p.productId === Number(item.productId))?.productCode || "CODE"}-PN-XXXX
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <span className="text-gray-400 text-xs">Chọn sản phẩm và nhập SL</span>
-                                            )}
-                                        </td>
-
-                                        <td className="border p-2 text-center">
-                                            <button
-                                                className="text-red-600 hover:bg-red-50 p-1 rounded transition"
-                                                onClick={() => removeItem(index)}
-                                            >
-                                                ✕
-                                            </button>
-                                        </td>
+                            <table className="w-full border text-sm">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="border p-2 text-center">Sản phẩm</th>
+                                        <th className="border p-2 text-center w-24">SL</th>
+                                        <th className="border p-2 text-center w-24">Đơn vị</th>
+                                        <th className="border p-2 text-center w-32">Giá Đơn vị</th>
+                                        <th className="border p-2 text-center w-48">Preview SerialNumber</th>
+                                        <th className="border p-2 text-center w-16"></th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+
+                                <tbody>
+                                    {form.details.map((item, index) => (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border p-2">
+                                                <select
+                                                    value={item.productId}
+                                                    className="border p-1 rounded w-full text-sm"
+                                                    onChange={(e) =>
+                                                        updateItem(index, "productId", e.target.value)
+                                                    }
+                                                >
+                                                    <option value="">-- Chọn sản phẩm --</option>
+                                                    {products.map((p: any) => (
+                                                        <option key={p.productId} value={p.productId}>
+                                                            {p.productName}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+
+                                            <td className="border p-2">
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    value={item.quantity}
+                                                    className="border p-1 rounded w-full text-center text-sm"
+                                                    onChange={(e) =>
+                                                        updateItem(index, "quantity", Number(e.target.value))
+                                                    }
+                                                />
+                                            </td>
+
+                                            <td className="border p-2">
+                                                <input
+                                                    value={item.unit}
+                                                    className="border p-1 rounded w-full text-center text-sm"
+                                                    onChange={(e) =>
+                                                        updateItem(index, "unit", e.target.value)
+                                                    }
+                                                    placeholder="pcs"
+                                                />
+                                            </td>
+
+                                            <td className="border p-2">
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    className="border p-1 rounded w-full text-right text-sm"
+                                                    value={item.price}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        if (value > 0 || e.target.value === "") {
+                                                            updateItem(index, "price", value);
+                                                        }
+                                                    }}
+                                                    placeholder="Nhập giá"
+                                                />
+                                            </td>
+
+                                            <td className="border p-2">
+                                                {item.productId && item.quantity > 0 ? (
+                                                    <div className="text-xs">
+                                                        <div className="max-h-20 overflow-y-auto bg-gray-50 p-1 rounded">
+                                                            {generateSerialPreview(
+                                                                products.find((p: any) => p.productId === Number(item.productId))?.productCode || "",
+                                                                item.quantity,
+                                                                "PN-XXX"
+                                                            ).slice(0, 5).map((sn, i) => (
+                                                                <div key={i} className="font-mono text-blue-600">
+                                                                    {sn}
+                                                                </div>
+                                                            ))}
+                                                            {item.quantity > 5 && (
+                                                                <div className="text-gray-500 italic">
+                                                                    ... và {item.quantity - 5} số khác
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-gray-500 mt-1">
+                                                            Format: {products.find((p: any) => p.productId === Number(item.productId))?.productCode || "CODE"}-PN-XXXX
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">Chọn sản phẩm và nhập SL</span>
+                                                )}
+                                            </td>
+
+                                            <td className="border p-2 text-center">
+                                                <button
+                                                    className="text-red-600 hover:bg-red-50 p-1 rounded transition"
+                                                    onClick={() => removeItem(index)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-3 mb-4">
@@ -489,7 +489,7 @@ const ReceivingFormModal = ({ isOpen, onClose }: any) => {
                                         </div>
 
                                         <div>
-                                            <label className="text-xs text-gray-600 mb-1 block">Giá</label>
+                                            <label className="text-xs text-gray-600 mb-1 block">Giá đơn vị </label>
                                             <input
                                                 type="number"
                                                 min={1}

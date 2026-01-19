@@ -77,9 +77,7 @@ const Doitac = () => {
 
     if (loadingPartners) return <div className="p-4">Đang tải...</div>;
 
-    // ================================
-    // TABLE COLUMNS
-    // ================================
+    // TABLE COLUMNS 
     const columns: Column<PartnerDTO>[] = [
         { title: "Mã ĐT", dataIndex: "partnerId" }, // Partner ID
         { title: "Tên đối tác", dataIndex: "partnerName" },
@@ -88,6 +86,7 @@ const Doitac = () => {
             title: "Loại đối tác", 
             dataIndex: "partnerType",
             render: (value: string) => (
+                // Corlor
                 <span className={`px-2 py-1 rounded text-xs font-medium ${
                     value === "Nhà cung cấp" 
                         ? "bg-blue-100 text-blue-700" 
@@ -122,9 +121,7 @@ const Doitac = () => {
         },
     ];
 
-    // ================================
     // RENDER
-    // ================================
     return (
         <div className="max-w-7xl mx-auto p-2 sm:p-4">
             {/* HEADER */}
@@ -139,33 +136,37 @@ const Doitac = () => {
                 </button>
             </div>
 
-            {/* FILTER BAR */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-    
-    {/* Ô Search */}
-    <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <input
-            type="text"
-            placeholder="Tìm kiếm theo tên hoặc số điện thoại..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-    </div>
+           {/* FILTER BAR */}
+<div className="bg-white rounded-lg shadow p-4 mb-4">
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
 
-    {/* FILTER PARTNER TYPE */}
-        <select
-        value={filterType}
-        onChange={(e) => setFilterType(e.target.value)}
-        className="w-full sm:w-60 border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-        >
-        <option value="Tất cả">Tất cả loại đối tác</option>
-        <option value="Nhà cung cấp">Nhà cung cấp</option>
-        <option value="Nhà phân phối">Nhà phân phối</option>
-        </select>
-    </div>
+        {/* SEARCH */}
+        <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+                type="text"
+                placeholder="Tìm theo tên đối tác hoặc số điện thoại..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
+            />
+        </div>
 
+        {/* FILTER PARTNER TYPE */}
+        <div className="w-full sm:w-60">
+            <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                <option value="Tất cả">Tất cả loại đối tác</option>
+                <option value="Nhà cung cấp">Nhà cung cấp</option>
+                <option value="Nhà phân phối">Nhà phân phối</option>
+            </select>
+        </div>
+
+    </div>
+</div>
 
             {/* TABLE */}
             <div className="bg-white rounded-lg shadow p-4">

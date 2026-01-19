@@ -12,5 +12,6 @@
         public int ActualQuantity { get; set; }
         public int DamageQuantity { get; set; }
         public string? DamageReason { get; set; }
+        public decimal? Price { get; set; }
     }
 }

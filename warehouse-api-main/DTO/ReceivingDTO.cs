@@ -21,7 +21,7 @@ public class ReceivingDTO
     public List<ReceivingDetailDTO> Details { get; set; }
 }
 
-// ✅ DTO cho thống kê nhập theo thời gian
+//  DTO cho thống kê nhập theo thời gian
 public class ReceivingReportDTO
 {
     public int ReceivingId { get; set; }

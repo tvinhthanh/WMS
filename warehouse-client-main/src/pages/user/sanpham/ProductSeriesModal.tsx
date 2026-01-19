@@ -50,7 +50,7 @@ const ProductSeriesModal = ({ isOpen, onClose, product }: Props) => {
                         <p className="text-sm text-blue-800 flex items-start gap-2">
                             <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <span>
-                                <strong>Lưu ý:</strong> SerialNumber được tạo tự động khi hoàn tất phiếu nhập. 
+                                <strong>Lưu ý:</strong> SerialNumber được tạo tự động khi hoàn tất phiếu nhập.
                                 Không thể thêm SerialNumber thủ công. SerialNumber sẽ được liên kết với lô hàng nhập để quản lý FIFO.
                             </span>
                         </p>
@@ -84,13 +84,12 @@ const ProductSeriesModal = ({ isOpen, onClose, product }: Props) => {
                                         <tr key={s.productSeriesId}>
                                             <td className="border p-2 font-mono text-blue-600">{s.serialNumber}</td>
                                             <td className="border p-2">
-                                                <span className={`px-2 py-1 rounded text-xs ${
-                                                    s.status === "InStock" ? "bg-green-100 text-green-800" :
-                                                    s.status === "Picked" ? "bg-blue-100 text-blue-800" :
-                                                    s.status === "Damaged" ? "bg-red-100 text-red-800" :
-                                                    s.status === "Lost" ? "bg-orange-100 text-orange-800" :
-                                                    "bg-gray-100 text-gray-800"
-                                                }`}>
+                                                <span className={`px-2 py-1 rounded text-xs ${s.status === "InStock" ? "bg-green-100 text-green-800" :
+                                                        s.status === "Picked" ? "bg-blue-100 text-blue-800" :
+                                                            s.status === "Damaged" ? "bg-red-100 text-red-800" :
+                                                                s.status === "Lost" ? "bg-orange-100 text-orange-800" :
+                                                                    "bg-gray-100 text-gray-800"
+                                                    }`}>
                                                     {s.status}
                                                 </span>
                                             </td>

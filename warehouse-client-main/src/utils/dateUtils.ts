@@ -34,12 +34,12 @@ export function isInCurrentMonth(dateString: string | Date): boolean {
 }
 
 /**
- * Get last N days dates
+ * Get last N days dates change 7 to 30
  */
-export function getLastNDays(n: number): string[] {
-  return Array.from({ length: n }, (_, i) => {
+export function get7Days(): string[] {
+  return Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() - (n - 1 - i));
+    date.setDate(date.getDate() - (7 - 1 - i));
     return date.toISOString().split("T")[0];
   });
 }

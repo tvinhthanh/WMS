@@ -359,7 +359,7 @@ const KiemkeModal = ({ isOpen, onClose, stockTake }: Props) => {
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

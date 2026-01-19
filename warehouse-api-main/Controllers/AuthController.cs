@@ -24,9 +24,9 @@ namespace WMS1.Controllers
             _config = config;
         }
 
-        // ============================================================
+       
         // REGISTER
-        // ============================================================
+        
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserDTO dto)
         {
@@ -68,9 +68,9 @@ namespace WMS1.Controllers
             });
         }
 
-        // ============================================================
+      
         // LOGIN
-        // ============================================================
+        
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserDTO dto)
         {
@@ -107,9 +107,9 @@ namespace WMS1.Controllers
             });
         }
 
-        // ============================================================
+      
         // GET CURRENT USER
-        // ============================================================
+       
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me()
@@ -121,9 +121,9 @@ namespace WMS1.Controllers
             return Ok(new { user = Map(u) });
         }
 
-        // ============================================================
+      
         // UPDATE PROFILE
-        // ============================================================
+        
         [Authorize]
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UserDTO dto)
@@ -142,9 +142,9 @@ namespace WMS1.Controllers
             return Ok(new { user = Map(u) });
         }
 
-        // ============================================================
+   
         // CHANGE PASSWORD
-        // ============================================================
+       
         [Authorize]
         [HttpPost("password/change")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePassDTO dto)
@@ -175,9 +175,9 @@ namespace WMS1.Controllers
             return Ok("Password changed successfully.");
         }
 
-        // ============================================================
+        
         // MY LOGIN HISTORY (30 LAST)
-        // ============================================================
+       
         [Authorize]
         [HttpGet("my-login-history")]
         public async Task<IActionResult> MyLoginHistory()
@@ -193,9 +193,9 @@ namespace WMS1.Controllers
             return Ok(new { logs });
         }
 
-        // ============================================================
+       
         // REQUEST PASSWORD RESET (User gửi request)
-        // ============================================================
+       
         [HttpPost("request-password-reset")]
         public async Task<IActionResult> RequestPasswordReset([FromBody] CreatePasswordResetRequestDTO dto)
         {
@@ -232,9 +232,9 @@ namespace WMS1.Controllers
             });
         }
 
-        // ============================================================
+     
         // HELPERS
-        // ============================================================
+      
         private int GetUserId()
         {
             return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -253,7 +253,7 @@ namespace WMS1.Controllers
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Role, user.Role)
             };
-
+            //Token có thời hạn
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(24),

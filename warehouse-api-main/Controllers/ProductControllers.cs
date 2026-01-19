@@ -24,7 +24,7 @@ namespace WMS1.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         {
-            // ✅ Tối ưu: Thêm pagination để tránh load quá nhiều data
+            // Thêm pagination để tránh load quá nhiều data
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 50; // Giới hạn tối đa 100 items/page
 
@@ -167,7 +167,7 @@ namespace WMS1.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            // ✅ Tối ưu: Kiểm tra tất cả bảng trong một query duy nhất thay vì 5 queries riêng biệt
+            // Tối ưu: Kiểm tra tất cả bảng trong một query duy nhất thay vì 5 queries riêng biệt
             var isUsed = await _db.ReceivingDetails.AnyAsync(x => x.ProductId == id) ||
                 await _db.PickingDetails.AnyAsync(x => x.ProductId == id) ||
                 await _db.InventoryDetails.AnyAsync(x => x.ProductId == id) ||

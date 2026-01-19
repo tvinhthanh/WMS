@@ -55,7 +55,7 @@ export default function ForgotPassword() {
             <div className="space-y-6 text-center">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-sm text-green-800">
-                  <span className="font-semibold">✅ Yêu cầu đã được gửi!</span>
+                  <span className="font-semibold"> Yêu cầu đã được gửi!</span>
                 </p>
                 <p className="text-sm text-green-700 mt-2">
                   Admin sẽ xem xét và xử lý yêu cầu của bạn. Sau khi được duyệt, mật khẩu sẽ được reset về mặc định: <span className="font-bold">123456</span>

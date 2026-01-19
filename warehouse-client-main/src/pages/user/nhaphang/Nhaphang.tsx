@@ -10,6 +10,30 @@ import { exportToExcel } from "../../../utils/excelExport";
 import { extractDataFromResponse, extractPaginationFromResponse } from "../../../utils/pagination";
 import Pagination from "../../../components/Pagination";
 
+
+const parseSearchDate = (value: string): Date | null => {
+    const parts = value.split("/").map(Number);
+
+    // dd/mm/yyyy
+    if (parts.length === 3) {
+        const [day, month, year] = parts;
+        return new Date(year, month - 1, day);
+    }
+    // dd/mm 
+    if (parts.length === 2) {
+        const [day, month] = parts;
+        const currentYear = new Date().getFullYear();
+        return new Date(currentYear, month - 1, day);
+    }
+    return null;
+};
+
+
+const isSameDate = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
 const Nhaphang = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
@@ -28,9 +52,26 @@ const Nhaphang = () => {
     const receivings = extractDataFromResponse<ReceivingDTO>(response);
     const pagination = extractPaginationFromResponse(response);
 
-    const filtered = receivings.filter((r) =>
-        r.orderCode?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const searchDate = parseSearchDate(searchTerm);
+
+    const filtered = receivings.filter((r) => {
+    // Tìm theo mã phiếu / ID
+    const matchText =
+        r.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.receivingId?.toString().includes(searchTerm);
+
+    // Tìm theo mã giao hàng
+    // r.deliveryCode?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    // Tìm theo ngày nhập (dd/MM/yyyy)
+         if (searchDate && r.receivedDate) {
+        const receivedDate = new Date(r.receivedDate);
+        return isSameDate(receivedDate, searchDate);
+         }
+
+    return matchText;
+});
+
 
     const handleExportExcel = async () => {
         try {
@@ -86,7 +127,7 @@ const Nhaphang = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                         type="text"
-                        placeholder="Tìm theo mã phiếu..."
+                        placeholder="Tìm theo mã phiếu, ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border rounded"

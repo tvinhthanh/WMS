@@ -322,6 +322,7 @@ export interface ReceivingActualItemDTO {
   actualQuantity: number;
   damageQuantity: number;
   damageReason?: string;
+  price?: number;
 }
 
 export interface ReceivingActualUpdateDTO {

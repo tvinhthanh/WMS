@@ -90,7 +90,7 @@ const ReceivingReport = () => {
     };
 
     const formatVND = (value: number) => {
-        return value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+        return value.toLocaleString("vi-VN") + " VND";  
     };
 
     const totalAmount = reportData.reduce((sum: number, r: ReceivingReportDTO) => {
@@ -178,7 +178,7 @@ const ReceivingReport = () => {
                     </div>
                 </div>
             )}
-
+            
             {/* TABLE */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 {isLoading ? (
