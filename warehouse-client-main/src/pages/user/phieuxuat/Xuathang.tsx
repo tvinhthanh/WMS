@@ -104,15 +104,15 @@ const PickingPage = () => {
     const handleExportExcel = async () => {
         try {
             const exportData = orders.map((order) => ({
-                "Mã phiếu": order.orderCode || "",
-                "Nhà phân phối": order.partnerName || "",
-                "Người tạo": getUserName(order),
+            "Mã phiếu": order.orderCode || "",
+            "Nhà phân phối": order.partnerName || "",
+            "Người tạo": getUserName(order),
                 "Ngày tạo": order.createDate ? formatDate(order.createDate) : "",
                 "Ngày xuất": order.pickedDate ? formatDate(order.pickedDate) : "",
                 "Trạng thái": formatStatus(order.status),
-                "Số sản phẩm": order.details?.length || 0,
+            "Số sản phẩm": order.details?.length || 0,
                 "Ghi chú": ""
-            }));
+        }));
 
             await exportToExcel(exportData, `BaoCaoXuatHang_${new Date().toISOString().split("T")[0]}`, "Xuất hàng");
         } catch (error) {
@@ -330,7 +330,7 @@ const PickingPage = () => {
                                     <div className="space-y-1 text-sm text-gray-600 mb-3">
                                         <div className="flex justify-between">
                                             <span>Ngày tạo:</span>
-                                            <span>{formatDate(order.createDate)}</span>
+                                        <span>{formatDate(order.createDate)}</span>
                                         </div>
                                         {order.pickedDate && (
                                             <div className="flex justify-between">

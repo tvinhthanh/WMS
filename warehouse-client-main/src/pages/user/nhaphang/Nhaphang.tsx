@@ -35,13 +35,13 @@ const Nhaphang = () => {
     const handleExportExcel = async () => {
         try {
             const exportData = filtered.map((r) => ({
-                "Mã phiếu": r.orderCode || "",
-                "Mã giao hàng": r.deliveryCode || "",
-                "Nhà cung cấp": r.partnerName || "",
-                "Ngày tạo": r.createdDate ? new Date(r.createdDate).toLocaleDateString("vi-VN") : "",
-                "Trạng thái": r.status || "",
-                "Ghi chú": r.note || ""
-            }));
+            "Mã phiếu": r.orderCode || "",
+            "Mã giao hàng": r.deliveryCode || "",
+            "Nhà cung cấp": r.partnerName || "",
+            "Ngày tạo": r.createdDate ? new Date(r.createdDate).toLocaleDateString("vi-VN") : "",
+            "Trạng thái": r.status || "",
+            "Ghi chú": r.note || ""
+        }));
 
             await exportToExcel(exportData, `BaoCaoNhapHang_${new Date().toISOString().split("T")[0]}`, "Nhập hàng");
         } catch (error) {

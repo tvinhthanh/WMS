@@ -442,15 +442,15 @@ namespace WMS1.Controllers
 
                 // ✅ Tối ưu: Sử dụng AddRange thay vì Add trong loop
                 var receivingDetails = dto.Details.Select(item => new ReceivingDetail
-                {
-                    ReceivingId = receiving.ReceivingId,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    Unit = item.Unit,
-                    Price = item.Price,
-                    ActualQuantity = null,
-                    DamageQuantity = item.DamageQuantity ?? 0,
-                    DamageReason = item.DamageReason
+                    {
+                        ReceivingId = receiving.ReceivingId,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        Unit = item.Unit,
+                        Price = item.Price,
+                        ActualQuantity = null,
+                        DamageQuantity = item.DamageQuantity ?? 0,
+                        DamageReason = item.DamageReason
                 }).ToList();
 
                 _db.ReceivingDetails.AddRange(receivingDetails);

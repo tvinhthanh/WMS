@@ -380,26 +380,26 @@ namespace WMS1.Controllers
                             .OrderBy(ps => ps.ReceivedDate ?? DateTime.MinValue) // FIFO: nhập trước xuất trước
                             .ThenBy(ps => ps.ProductSeriesId)
                             .Take(d.QuantityPicked)
-                            .ToListAsync();
-                        
-                        _logger.LogInformation(
+                        .ToListAsync();
+                    
+                    _logger.LogInformation(
                             "Found {Count} serial numbers available for ProductId {ProductId}, QuantityPicked: {QuantityPicked}",
                             serialNumbersToPick.Count, d.ProductId, d.QuantityPicked);
-                        
+                    
                         // Chỉ kiểm tra đủ serial numbers nếu sản phẩm có serial numbers
                         if (serialNumbersToPick.Count < d.QuantityPicked)
-                        {
+                    {
                             return BadRequest($"Không đủ serial numbers trong kho cho {d.Product?.ProductName}! Có {serialNumbersToPick.Count} serial numbers có sẵn, nhưng yêu cầu {d.QuantityPicked}.");
-                        }
-                        
-                        if (serialNumbersToPick.Any())
+                    }
+                    
+                    if (serialNumbersToPick.Any())
+                    {
+                        _logger.LogInformation(
+                                "✅ Selected {Count} serial numbers by FIFO for picking",
+                            serialNumbersToPick.Count);
+                        foreach (var serial in serialNumbersToPick)
                         {
                             _logger.LogInformation(
-                                "✅ Selected {Count} serial numbers by FIFO for picking",
-                                serialNumbersToPick.Count);
-                            foreach (var serial in serialNumbersToPick)
-                            {
-                                _logger.LogInformation(
                                     "  - Serial: {SerialNumber} (ID: {ProductSeriesId}, ReceivedDate: {ReceivedDate})",
                                     serial.SerialNumber, serial.ProductSeriesId, serial.ReceivedDate?.ToString("yyyy-MM-dd") ?? "N/A");
                             }
@@ -550,25 +550,25 @@ namespace WMS1.Controllers
                             {
                                 try
                                 {
-                                    var pickingSerialDetail = new PickingSerialDetail
-                                    {
-                                        PickingDetailId = d.PickingDetailId,
-                                        ProductSeriesId = serial.ProductSeriesId,
-                                        ProductId = d.ProductId,
-                                        SerialNumber = serial.SerialNumber,
-                                        PickedDate = pickedDate,
-                                        Status = "Picked"
-                                    };
-                                    _db.PickingSerialDetails.Add(pickingSerialDetail);
-                                    _logger.LogInformation(
+                                        var pickingSerialDetail = new PickingSerialDetail
+                                        {
+                                            PickingDetailId = d.PickingDetailId,
+                                            ProductSeriesId = serial.ProductSeriesId,
+                                            ProductId = d.ProductId,
+                                            SerialNumber = serial.SerialNumber,
+                                            PickedDate = pickedDate,
+                                            Status = "Picked"
+                                        };
+                                        _db.PickingSerialDetails.Add(pickingSerialDetail);
+                                        _logger.LogInformation(
                                         "✅ Created PickingSerialDetail for serial {SerialNumber} (ID: {SerialId})",
                                         serial.SerialNumber, serial.ProductSeriesId);
-                                }
-                                catch (Exception addEx)
-                                {
-                                    _logger.LogError(addEx,
-                                        "Error adding PickingSerialDetail for serial {SerialId}: {Message}",
-                                        serial.ProductSeriesId, addEx.Message);
+                                    }
+                                    catch (Exception addEx)
+                                    {
+                                        _logger.LogError(addEx,
+                                            "Error adding PickingSerialDetail for serial {SerialId}: {Message}",
+                                            serial.ProductSeriesId, addEx.Message);
                                 }
                             }
                         }

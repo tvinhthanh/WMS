@@ -231,15 +231,15 @@ namespace WMS1.Controllers
                         .Select(log => (int?)log.BalanceAfter)
                         .FirstOrDefault() ?? _db.InventoryLogs
                         .Where(log => log.ProductId == p.ProductId && log.TransactionDate < startOfDay)
-                        .OrderByDescending(log => log.TransactionDate)
-                        .ThenByDescending(log => log.InventoryLogId)
+                .OrderByDescending(log => log.TransactionDate)
+                .ThenByDescending(log => log.InventoryLogId)
                         .Select(log => (int?)log.BalanceAfter)
                         .FirstOrDefault() ?? 0
                 })
                 .ToListAsync();
 
             var result = summaries.Select(s => new InventorySummaryDTO
-            {
+                {
                 ProductId = s.ProductId,
                 ProductName = s.ProductName,
                 BeginningBalance = s.BeginningBalance,
@@ -247,8 +247,8 @@ namespace WMS1.Controllers
                 TotalOUT = s.TotalOUT,
                 TotalAdjust = s.TotalAdjust,
                 EndingBalance = s.EndingBalance,
-                FromDate = startOfDay,
-                ToDate = endOfDay
+                    FromDate = startOfDay,
+                    ToDate = endOfDay
             }).ToList();
 
             return Ok(result);

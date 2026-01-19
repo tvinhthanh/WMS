@@ -169,10 +169,10 @@ namespace WMS1.Controllers
         {
             // ✅ Tối ưu: Kiểm tra tất cả bảng trong một query duy nhất thay vì 5 queries riêng biệt
             var isUsed = await _db.ReceivingDetails.AnyAsync(x => x.ProductId == id) ||
-                         await _db.PickingDetails.AnyAsync(x => x.ProductId == id) ||
-                         await _db.InventoryDetails.AnyAsync(x => x.ProductId == id) ||
-                         await _db.StockTakeDetails.AnyAsync(x => x.ProductId == id) ||
-                         await _db.ProductSeries.AnyAsync(x => x.ProductId == id);
+                await _db.PickingDetails.AnyAsync(x => x.ProductId == id) ||
+                await _db.InventoryDetails.AnyAsync(x => x.ProductId == id) ||
+                await _db.StockTakeDetails.AnyAsync(x => x.ProductId == id) ||
+                await _db.ProductSeries.AnyAsync(x => x.ProductId == id);
 
             if (isUsed)
                 return BadRequest("Không thể xóa sản phẩm vì đã phát sinh giao dịch kho");

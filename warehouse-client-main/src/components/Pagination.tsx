@@ -17,7 +17,7 @@ const Pagination = ({ page, pages, onPageChange }: PaginationProps) => {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pages && newPage !== page) {
       onPageChange(newPage);
-    }
+  }
   };
 
   return (

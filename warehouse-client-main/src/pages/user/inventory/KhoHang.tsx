@@ -35,10 +35,12 @@ const InventoryPage = () => {
     const inventoryPagination = extractPaginationFromResponse(inventoryResponse);
 
     // Get products for export
-    const { data: productResponse } = useQuery("products", productService.getAll);
+    const { data: productResponse } = useQuery(
+        "products",
+        () => productService.getAll()
+    );
     const products = extractDataFromResponse(productResponse);
-    
-    
+
     // Get inventory details (FIFO lots) for selected product
     const { data: details = [], isLoading: detailsLoading, isError: detailsError } = useQuery(
         ["inventory-details", selectedProductId],
@@ -94,14 +96,14 @@ const InventoryPage = () => {
         try {
             const exportData = filtered.map((inv) => {
                 const product = products.find((p) => p.productId === inv.productId);
-                return {
-                    "Mã sản phẩm": product?.productCode || "",
-                    "Tên sản phẩm": inv.productName || "",
-                    "Số lượng tồn": inv.quantity,
-                    "Đơn vị": product?.unit || "",
-                    "Cập nhật lần cuối": inv.lastUpdate ? formatDate(inv.lastUpdate) : ""
-                };
-            });
+            return {
+                "Mã sản phẩm": product?.productCode || "",
+                "Tên sản phẩm": inv.productName || "",
+                "Số lượng tồn": inv.quantity,
+                "Đơn vị": product?.unit || "",
+                "Cập nhật lần cuối": inv.lastUpdate ? formatDate(inv.lastUpdate) : ""
+            };
+        });
 
             await exportToExcel(exportData, `BaoCaoTonKho_${new Date().toISOString().split("T")[0]}`, "Tồn kho");
         } catch (error) {
