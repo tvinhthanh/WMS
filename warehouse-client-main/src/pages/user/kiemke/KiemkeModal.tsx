@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { X, Plus, Trash2, Loader2, Save } from "lucide-react";
 import { stockTakeService } from "../../../services/stocktake.service";
 import { productService } from "../../../services/product.service";
 import { useAppContext } from "../../../contexts/AppContext";
 import { StockTakeDTO, StockTakeCreateDTO, ProductDTO } from "../../../types";
+
 
 interface Props {
     isOpen: boolean;
@@ -158,59 +159,85 @@ const KiemkeModal = ({ isOpen, onClose, stockTake }: Props) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {stockTake?.details.map((d) => (
-                                        <tr key={d.stockTakeDetailId} className="border-t">
-                                            <td className="p-2">
-                                                <div>
-                                                    <p className="font-medium">{d.productName}</p>
-                                                    <p className="text-xs text-gray-500">{d.productCode}</p>
-                                                    {d.damageReason && (
-                                                        <p className="text-xs text-red-600 mt-1">Lý do: {d.damageReason}</p>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="p-2 text-right">{d.systemQuantity}</td>
-                                            <td className="p-2 text-right font-medium">{d.actualQuantity}</td>
-                                            <td className="p-2 text-right">
-                                                {d.damageQuantity > 0 ? (
-                                                    <span className="text-red-600 font-medium">{d.damageQuantity}</span>
-                                                ) : (
-                                                    <span className="text-gray-400">0</span>
-                                                )}
-                                            </td>
-                                            <td className={`p-2 text-right font-bold ${d.variance > 0 ? "text-green-600" : d.variance < 0 ? "text-red-600" : "text-gray-600"
-                                                }`}>
-                                                {d.variance > 0 ? "+" : ""}{d.variance}
-                                            </td>
-                                            <td className="p-2">
-                                                {d.serialNumbers && d.serialNumbers.length > 0 ? (
-                                                    <div className="max-w-xs">
-                                                        <div className="text-xs text-gray-600 mb-1">
-                                                            {d.serialNumbers.length} số series
-                                                        </div>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {d.serialNumbers.slice(0, 3).map((sn) => (
-                                                                <span 
-                                                                    key={sn.productSeriesId}
-                                                                    className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200"
-                                                                    title={`SerieID: ${sn.productSeriesId}, Status: ${sn.status}${sn.pickedDate ? `, Ngày xuất: ${new Date(sn.pickedDate).toLocaleDateString('vi-VN')}` : ''}`}
-                                                                >
-                                                                    {sn.serialNumber}
-                                                                </span>
-                                                            ))}
-                                                            {d.serialNumbers.length > 3 && (
-                                                                <span className="text-xs text-gray-500">
-                                                                    +{d.serialNumbers.length - 3} khác
-                                                                </span>
+                                    {stockTake?.details.map((d) => {
+                                        // Tính toán chênh lệch và số lượng mất
+                                        const variance = d.actualQuantity - d.systemQuantity;
+                                        // Số lượng mất thực sự (đã trừ hư hỏng)
+                                        const lostQuantity = d.systemQuantity - (d.actualQuantity + d.damageQuantity);
+                                        return (
+                                            <Fragment key={d.stockTakeDetailId}>
+                                                <tr className="border-t">
+                                                    <td className="p-2">
+                                                        <div>
+                                                            <p className="font-medium">{d.productName}</p>
+                                                            <p className="text-xs text-gray-500">{d.productCode}</p>
+                                                            {d.damageReason && (
+                                                                <p className="text-xs text-red-600 mt-1">Lý do: {d.damageReason}</p>
                                                             )}
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-gray-400 text-xs">-</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                    </td>
+                                                    <td className="p-2 text-right">{d.systemQuantity}</td>
+                                                    <td className="p-2 text-right font-medium">{d.actualQuantity}</td>
+                                                    <td className="p-2 text-right">
+                                                        {d.damageQuantity > 0 ? (
+                                                            <span className="text-red-600 font-medium">{d.damageQuantity}</span>
+                                                        ) : (
+                                                            <span className="text-gray-400">0</span>
+                                                        )}
+                                                    </td>
+                                                    <td className={`p-2 text-right font-bold ${variance > 0 ? "text-green-600" : variance < 0 ? "text-red-600" : "text-gray-600"
+                                                        }`}>
+                                                        {variance > 0 ? "+" : ""}{variance}
+                                                    </td>
+                                                    <td className="p-2">
+                                                        {d.serialNumbers && d.serialNumbers.length > 0 ? (
+                                                            <div className="max-w-xs">
+                                                                <div className="text-xs text-gray-600 mb-1">
+                                                                    {d.serialNumbers.length} số series
+                                                                </div>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {d.serialNumbers.slice(0, 3).map((sn) => (
+                                                                        <span
+                                                                            key={sn.productSeriesId}
+                                                                            className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200"
+                                                                            title={`SerieID: ${sn.productSeriesId}, Status: ${sn.status}${sn.pickedDate ? `, Ngày xuất: ${new Date(sn.pickedDate).toLocaleDateString('vi-VN')}` : ''}`}
+                                                                        >
+                                                                            {sn.serialNumber}
+                                                                        </span>
+                                                                    ))}
+                                                                    {d.serialNumbers.length > 3 && (
+                                                                        <span className="text-xs text-gray-500">
+                                                                            +{d.serialNumbers.length - 3} khác
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-400 text-xs">-</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                {/* CẢNH BÁO MẤT HÀNG */}
+                                                {
+                                                    lostQuantity > 0 && (
+                                                        <tr>
+                                                            <td colSpan={6} className="p-2 bg-red-50">
+                                                                <div className="text-red-700 text-sm flex items-center gap-2 font-medium">
+                                                                    Phát hiện thiếu{" "}
+                                                                    <span className="font-bold">
+                                                                        {lostQuantity}
+                                                                    </span>{" "}
+                                                                    sản phẩm (đã trừ hư hỏng)
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                }    
+                                            </Fragment>
+                                        );
+                                    })}
+
+
                                 </tbody>
                             </table>
                         </div>

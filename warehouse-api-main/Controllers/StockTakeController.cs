@@ -362,7 +362,8 @@ namespace WMS1.Controllers
                 {
                     int systemQty = systemInventories.GetValueOrDefault(detail.ProductId, 0);
                     detail.SystemQuantity = systemQty;
-                    detail.Variance = detail.ActualQuantity - systemQty; // Variance = Actual - System
+                    detail.Variance = detail.ActualQuantity + detail.DamageQuantity - systemQty;
+                    // Variance = (Số lượng thực tế còn sử dụng được + Số lượng hư hỏng) - Tồn kho hệ thống
                 }
 
                 // ✅ BƯỚC 2: ĐIỀU CHỈNH TỒN KHO (giống logic Complete cũ)
