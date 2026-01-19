@@ -38,6 +38,7 @@ const Danhmuc = lazy(() => import("./pages/user/danhmuc/Danhmuc"));
 // User pages - Inventory & Orders
 const Nhaphang = lazy(() => import("./pages/user/nhaphang/Nhaphang"));
 const ReceivingReport = lazy(() => import("./pages/user/nhaphang/ReceivingReport"));
+const ReceivingPrintView = lazy(() => import("./pages/user/nhaphang/ReceivingPrintView"));
 const InventoryPage = lazy(() => import("./pages/user/inventory/KhoHang"));
 const PickingPage = lazy(() => import("./pages/user/phieuxuat/Xuathang"));
 const Kiemke = lazy(() => import("./pages/user/kiemke/Kiemke"));
@@ -179,6 +180,16 @@ const App = () => {
                 <Layout>
                   <Suspense fallback={<LoadingSpinner />}>
                     <ReceivingReport />
+                  </Suspense>
+                </Layout>
+              } 
+            />
+            <Route 
+              path="/nhaphang/print/:receivingId" 
+              element={
+                <Layout>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ReceivingPrintView />
                   </Suspense>
                 </Layout>
               } 
